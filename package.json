@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "clean": "rimraf lib types",
-    "build": "tsc -p . && cpy src/*.js lib",
+    "build": "tsc -p .",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",

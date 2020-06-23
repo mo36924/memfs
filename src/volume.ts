@@ -4,15 +4,13 @@ import { Node, Link, File } from './node';
 import Stats from './Stats';
 import Dirent from './Dirent';
 import { Buffer, bufferAllocUnsafe, bufferFrom } from './internal/buffer';
-import setImmediate from './setImmediate';
-import process from './process';
-import setTimeoutUnref, { TSetTimeout } from './setTimeoutUnref';
+import process, { nextTick as setImmediate } from 'process';
 import { Readable, Writable } from 'stream';
 import { constants } from './constants';
 import { EventEmitter } from 'events';
 import { TEncodingExtended, TDataOut, assertEncoding, strToEncoding, ENCODING_UTF8 } from './encoding';
 import * as errors from './internal/errors';
-import util = require('util');
+import util from 'util';
 import createPromisesApi from './promises';
 
 const resolveCrossPlatform = pathModule.resolve;
@@ -388,7 +386,7 @@ function getPathFromURLPosix(url): string {
 export function pathToFilename(path: PathLike): string {
   if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
     try {
-      if (!(path instanceof require('url').URL)) throw new TypeError(ERRSTR.PATH_STR);
+      if (!(path instanceof URL)) throw new TypeError(ERRSTR.PATH_STR);
     } catch (err) {
       throw new TypeError(ERRSTR.PATH_STR);
     }
@@ -404,9 +402,9 @@ export function pathToFilename(path: PathLike): string {
 
 type TResolve = (filename: string, base?: string) => string;
 let resolve: TResolve = (filename, base = process.cwd()) => resolveCrossPlatform(base, filename);
+import { unixify } from 'fs-monkey/lib/correctPath';
 if (isWin) {
   const _resolve = resolve;
-  const { unixify } = require('fs-monkey/lib/correctPath');
   resolve = (filename, base) => unixify(_resolve(filename, base));
 }
 
@@ -422,15 +420,15 @@ export function pathToSteps(path: PathLike): string[] {
 }
 
 export function dataToStr(data: TData, encoding: string = ENCODING_UTF8): string {
-  if (Buffer.isBuffer(data)) return data.toString(encoding);
-  else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding);
+  if (Buffer.isBuffer(data)) return data.toString(encoding as any);
+  else if (data instanceof Uint8Array) return bufferFrom(data).toString(encoding as any);
   else return String(data);
 }
 
 export function dataToBuffer(data: TData, encoding: string = ENCODING_UTF8): Buffer {
   if (Buffer.isBuffer(data)) return data;
   else if (data instanceof Uint8Array) return bufferFrom(data);
-  else return bufferFrom(String(data), encoding);
+  else return bufferFrom(String(data), encoding as any);
 }
 
 export function bufferToEncoding(buffer: Buffer, encoding?: TEncodingExtended): TDataOut {
@@ -2187,7 +2185,7 @@ export class StatWatcher extends EventEmitter {
   filename: string;
   interval: number;
   timeoutRef?;
-  setTimeout: TSetTimeout;
+  setTimeout: (callback: (...args) => void, time?: number, args?: any[]) => any;
   prev: Stats;
 
   constructor(vol: Volume) {
@@ -2220,7 +2218,7 @@ export class StatWatcher extends EventEmitter {
 
   start(path: string, persistent: boolean = true, interval: number = 5007) {
     this.filename = pathToFilename(path);
-    this.setTimeout = persistent ? setTimeout : setTimeoutUnref;
+    this.setTimeout = (...args) => setTimeout(...args);
     this.interval = interval;
     this.prev = this.vol.statSync(this.filename);
     this.loop();

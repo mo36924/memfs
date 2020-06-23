@@ -1,4 +1,4 @@
-import process from './process';
+import process from 'process';
 import { bufferAllocUnsafe, bufferFrom } from './internal/buffer';
 import { constants, S } from './constants';
 import { Volume } from './volume';
@@ -45,7 +45,7 @@ export class Node extends EventEmitter {
   }
 
   getString(encoding = 'utf8'): string {
-    return this.getBuffer().toString(encoding);
+    return this.getBuffer().toString(encoding as any);
   }
 
   setString(str: string) {

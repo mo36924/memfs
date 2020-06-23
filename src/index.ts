@@ -10,7 +10,7 @@ import {
   DirectoryJSON,
 } from './volume';
 import { IPromisesAPI } from './promises';
-const { fsSyncMethods, fsAsyncMethods } = require('fs-monkey/lib/util/lists');
+import { fsSyncMethods, fsAsyncMethods } from 'fs-monkey/lib/util/lists';
 import { constants } from './constants';
 const { F_OK, R_OK, W_OK, X_OK } = constants;
 
